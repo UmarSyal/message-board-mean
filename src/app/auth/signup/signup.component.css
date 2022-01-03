@@ -1,0 +1,7 @@
+mat-form-field {
+  width: 100%;
+}
+
+button[mat-stroked-button] {
+  margin: 1rem 0;
+}
