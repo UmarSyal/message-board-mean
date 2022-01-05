@@ -36,7 +36,8 @@ router.post('',
     const post = new Post({
       title: req.body.title,
       content: req.body.content,
-      imagePath: url + '/images/' + req.file.filename
+      imagePath: url + '/images/' + req.file.filename,
+      creator: req.userInfo.id
     });
     post.save()
       .then((result) => {
@@ -116,15 +117,17 @@ router.put('/:id',
       const url = req.protocol + '://' + req.get('host');
       req.body.imagePath = url + '/images/' + req.file.filename;
     }
+    req.body.creator = req.userInfo.id;
+
     Post.updateOne(
-      { _id: req.params.id },
+      { _id: req.params.id, creator: req.userInfo.id },
       req.body
     )
       .then((result) => {
-        console.log('Post updated successfully:');
-        console.log(result);
-        res.status(201).json({
-          message: 'Post updated successfully!'
+        const message = result.modifiedCount > 0 ? 'Post updated successfully!' : 'Authorization denied';
+        const statusCode = result.modifiedCount > 0 ? 200 : 401;
+        res.status(statusCode).json({
+          message: message
         });
       })
       .catch((error) => {
@@ -140,12 +143,12 @@ router.put('/:id',
 router.delete('/:id',
   authTokenMiddleware,
   (req, res, next) => {
-    Post.deleteOne({ _id: req.params.id })
+    Post.deleteOne({ _id: req.params.id, creator: req.userInfo.id })
       .then((result) => {
-        console.log('Post deleted successfully:');
-        console.log(result);
-        res.status(200).json({
-          message: 'Post deleted successfully!',
+        const message = result.deletedCount > 0 ? 'Post deleted successfully!' : 'Authorization denied';
+        const statusCode = result.deletedCount > 0 ? 200 : 401;
+        res.status(statusCode).json({
+          message: message
         });
       })
       .catch((error) => {
