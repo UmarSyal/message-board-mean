@@ -1,6 +1,8 @@
 <mat-toolbar color="primary">
   <span routerLink="/" class="brand">MEAN Message Board</span>
   <span class="spacer"></span>
-  <a routerLink="/create" routerLinkActive="mat-accent" mat-button>New Post</a>
-  <a routerLink="/signup" routerLinkActive="mat-accent" mat-button>Signup</a>
+  <a *ngIf="userIsAuthenticated" mat-button routerLink="/create" routerLinkActive="mat-accent" mat-button>New Post</a>
+  <a *ngIf="!userIsAuthenticated" mat-button routerLink="/login" routerLinkActive="mat-accent" mat-button>Login</a>
+  <a *ngIf="!userIsAuthenticated" mat-button routerLink="/signup" routerLinkActive="mat-accent" mat-button>Signup</a>
+  <button *ngIf="userIsAuthenticated" mat-button (click)="onLogout();">Logout</button>
 </mat-toolbar>

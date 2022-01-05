@@ -1,7 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
+const authConfigs = require('../configs/auth.configs');
 
 const router = express.Router();
 
@@ -14,8 +16,7 @@ router.post('/signup', (req, res, next) => {
     user.save()
       .then(user => {
         res.status(201).json({
-          message: "User created!",
-          user: user
+          message: "User created!"
         });
       })
       .catch(err => {
@@ -25,6 +26,42 @@ router.post('/signup', (req, res, next) => {
         });
       });
   });
+});
+
+router.post('/login', (req, res, next) => {
+  let fetchedUser;
+
+  User.findOne({ email: req.body.email })
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({
+          message: 'Email not found!',
+        });
+      }
+      fetchedUser = user;
+      return bcrypt.compare(req.body.password, user.password);
+    })
+    .then(passwordMatched => {
+      if (!passwordMatched) {
+        return res.status(401).json({
+          message: 'Invalid password!',
+        });
+      }
+      const token = jwt.sign(
+        { email: fetchedUser.email, userId: fetchedUser._id },
+        authConfigs.jwt_secret,
+        { expiresIn: '1h' }
+      );
+      res.status(200).json({
+        message: 'Logged In',
+        token: token,
+        expiresIn: 3600
+      });
+    })
+    .catch(err => {
+      console.log('error');
+      console.log(err);
+    })
 });
 
 module.exports = router;

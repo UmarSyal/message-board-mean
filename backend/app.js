@@ -7,8 +7,10 @@ const postsRoutes = require('./routes/posts');
 const usersRoutes = require('./routes/users');
 
 const app = express();
+const atlasDB = 'mongodb+srv://admin:ps4hCO76VXccdgTE@cluster0.w6qo5.mongodb.net/message-board?retryWrites=true&w=majority'
+const localDB = 'mongodb://localhost:27017/message-board-mean'
 
-mongoose.connect('mongodb+srv://admin:ps4hCO76VXccdgTE@cluster0.w6qo5.mongodb.net/message-board?retryWrites=true&w=majority')
+mongoose.connect(localDB)
   .then(() => {
     console.log('Database Connection Successful!');
   })
@@ -23,7 +25,7 @@ app.use('/images', express.static(path.join('backend/images')));
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept'
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
   );
   res.setHeader('Access-Control-Allow-Methods',
     'GET, POST, PATCH, PUT, DELETE, OPTIONS'
