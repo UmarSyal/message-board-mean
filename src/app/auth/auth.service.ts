@@ -6,46 +6,70 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
+  private users_api_url_prefix = environment.api_url_prefix + 'users/';
+
   private errorOccuredListener: Subject<string | null> = new Subject();
-  private authStatusListener: BehaviorSubject<boolean> = new BehaviorSubject(false);
+  private authStatusListener: BehaviorSubject<boolean> = new BehaviorSubject(
+    false
+  );
   private authStatus: boolean = false;
   private authToken: string;
   private authUserId: string;
   private authTimeout: any;
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(private http: HttpClient, private router: Router) {}
 
-  signup(userCredentials: {email: string, password: string}) {
-    this.http.post<{ message: string, error?: any }>(environment.api_url_prefix + 'users/signup', userCredentials)
-      .subscribe(success => {
-        this.errorOccuredListener.next(null);
-        this.login({ email: userCredentials.email, password: userCredentials.password});
-      }, error => {
-        this.errorOccuredListener.next(error.error.error.message);
-      });
+  signup(userCredentials: { email: string; password: string }) {
+    this.http
+      .post<{ message: string; error?: any }>(
+        this.users_api_url_prefix + 'signup',
+        userCredentials
+      )
+      .subscribe(
+        (success) => {
+          this.errorOccuredListener.next(null);
+          this.login({
+            email: userCredentials.email,
+            password: userCredentials.password,
+          });
+        },
+        (error) => {
+          this.errorOccuredListener.next(error.error.error.message);
+        }
+      );
   }
 
-  login(userCredentials: {email: string, password: string}) {
-    this.http.post<{ message: string, token?: string, expiresIn?: number, userId?: string, error?: any }>(environment.api_url_prefix + 'users/login', userCredentials)
-      .subscribe(success => {
-        this.errorOccuredListener.next(null);
-        if (success.token) {
-          const expiresIn = success.expiresIn * 1000;
-          this.updateAuthData(success.token, true, expiresIn, success.userId);
-          const now = new Date();
-          const expiration = new Date(now.getTime() + expiresIn);
-          this.saveAuthData(success.token, expiration, success.userId);
-          this.router.navigate(['/']);
+  login(userCredentials: { email: string; password: string }) {
+    this.http
+      .post<{
+        message: string;
+        token?: string;
+        expiresIn?: number;
+        userId?: string;
+        error?: any;
+      }>(this.users_api_url_prefix + 'login', userCredentials)
+      .subscribe(
+        (success) => {
+          this.errorOccuredListener.next(null);
+          if (success.token) {
+            const expiresIn = success.expiresIn * 1000;
+            this.updateAuthData(success.token, true, expiresIn, success.userId);
+            const now = new Date();
+            const expiration = new Date(now.getTime() + expiresIn);
+            this.saveAuthData(success.token, expiration, success.userId);
+            this.router.navigate(['/']);
+          }
+        },
+        (error) => {
+          console.log('error');
+          console.log(error);
+          this.updateAuthData(null, false, 0, null);
+          this.errorOccuredListener.next(error.error.message);
         }
-      }, error => {
-        console.log('error');
-        console.log(error);
-        this.updateAuthData(null, false, 0, null);
-        this.errorOccuredListener.next(error.error.message);
-      });
+      );
   }
 
   logout() {
@@ -88,7 +112,12 @@ export class AuthService {
     }
   }
 
-  updateAuthData(token: string, authStatus: boolean, expiresIn: number, userId: string) {
+  updateAuthData(
+    token: string,
+    authStatus: boolean,
+    expiresIn: number,
+    userId: string
+  ) {
     this.authToken = token;
     this.authStatus = authStatus;
     this.authUserId = userId;
@@ -108,7 +137,7 @@ export class AuthService {
     localStorage.setItem('userId', userId);
   }
 
-  getAuthData(): { token: string, expiration: Date, userId: string } {
+  getAuthData(): { token: string; expiration: Date; userId: string } {
     const token = localStorage.getItem('authToken');
     const expiration = localStorage.getItem('tokenExpiration');
     const userId = localStorage.getItem('userId');
