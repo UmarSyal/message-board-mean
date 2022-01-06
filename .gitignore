@@ -47,4 +47,5 @@ Thumbs.db
 
 bash-scripts/
 backend/images/
+backend/uploaded-images/
 nodemon.json

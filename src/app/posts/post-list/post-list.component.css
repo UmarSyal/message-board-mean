@@ -19,3 +19,7 @@
 mat-paginator {
   margin-top: 1rem;
 }
+
+.content {
+  text-align: justify;
+}
