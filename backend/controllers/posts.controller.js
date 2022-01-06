@@ -85,8 +85,8 @@ exports.updatePost = (req, res, next) => {
     req.body
   )
     .then((result) => {
-      const message = result.modifiedCount > 0 ? 'Post updated successfully!' : 'Authorization denied';
-      const statusCode = result.modifiedCount > 0 ? 200 : 401;
+      const message = result.acknowledged ? 'Post updated successfully!' : 'Authorization denied';
+      const statusCode = result.acknowledged ? 200 : 401;
       res.status(statusCode).json({
         message: message
       });
