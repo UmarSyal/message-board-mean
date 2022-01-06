@@ -8,7 +8,7 @@ const usersRoutes = require('./routes/users.routes');
 
 const app = express();
 
-mongoose.connect(process.env.MONGO_LOCAL_DB)
+mongoose.connect(process.env.MONGO_ATLAS_DB)
   .then(() => {
     console.log('Database Connection Successful!');
   })
