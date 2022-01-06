@@ -3,8 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const postsRoutes = require('./routes/posts');
-const usersRoutes = require('./routes/users');
+const postsRoutes = require('./routes/posts.routes');
+const usersRoutes = require('./routes/users.routes');
 
 const app = express();
 const atlasDB = 'mongodb+srv://admin:ps4hCO76VXccdgTE@cluster0.w6qo5.mongodb.net/message-board?retryWrites=true&w=majority'

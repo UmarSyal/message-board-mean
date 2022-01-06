@@ -1,13 +1,10 @@
-const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const User = require('../models/user');
+const User = require('../models/user.model');
 const authConfigs = require('../configs/auth.configs');
 
-const router = express.Router();
-
-router.post('/signup', (req, res, next) => {
+exports.userSignup = (req, res, next) => {
   bcrypt.hash(req.body.password, 10).then(passwordHash => {
     const user = new User({
       email: req.body.email,
@@ -26,9 +23,9 @@ router.post('/signup', (req, res, next) => {
         });
       });
   });
-});
+};
 
-router.post('/login', (req, res, next) => {
+exports.userLogin = (req, res, next) => {
   let fetchedUser;
 
   User.findOne({ email: req.body.email })
@@ -63,6 +60,4 @@ router.post('/login', (req, res, next) => {
       console.log('error');
       console.log(err);
     })
-});
-
-module.exports = router;
+};
