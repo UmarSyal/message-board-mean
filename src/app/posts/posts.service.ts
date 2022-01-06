@@ -8,42 +8,51 @@ import { Post } from './post.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PostsService {
-  private posts: Post[] = [];
-  private postsUpdated = new Subject<{ posts: Post[], totalPosts: number }>();
+  private posts_api_url_prefix = environment.api_url_prefix + 'posts/';
 
-  constructor(private http: HttpClient,
-    private router: Router) { }
+  private posts: Post[] = [];
+  private postsUpdated = new Subject<{ posts: Post[]; totalPosts: number }>();
+
+  constructor(private http: HttpClient, private router: Router) {}
 
   getPosts(pageSize: number, currentPage: number) {
     const queryParams = `?pageSize=${pageSize}&currentPage=${currentPage}`;
-    this.http.get<{ message: string, posts: any, totalPosts: number }>(environment.api_url_prefix + 'posts' + queryParams)
-      .pipe(map((results) => {
-        return {
-          posts: results.posts.map(post => {
-            return {
-              id: post._id,
-              title: post.title,
-              content: post.content,
-              imagePath: post.imagePath
-            };
-          }),
-          totalPosts: results.totalPosts
-        };
-      }))
+    this.http
+      .get<{ message: string; posts: any; totalPosts: number }>(
+        this.posts_api_url_prefix + queryParams
+      )
+      .pipe(
+        map((results) => {
+          return {
+            posts: results.posts.map((post) => {
+              return {
+                id: post._id,
+                title: post.title,
+                content: post.content,
+                imagePath: post.imagePath,
+                creator: post.creator,
+              };
+            }),
+            totalPosts: results.totalPosts,
+          };
+        })
+      )
       .subscribe((postsData) => {
         this.posts = postsData.posts;
         this.postsUpdated.next({
           posts: [...this.posts],
-          totalPosts: postsData.totalPosts
+          totalPosts: postsData.totalPosts,
         });
       });
   }
 
   getPost(id: string) {
-    return this.http.get<{ message: string, post: any }>(environment.api_url_prefix + 'posts/' + id);
+    return this.http.get<{ message: string; post: any }>(
+      this.posts_api_url_prefix + id
+    );
   }
 
   addNewPost(title: string, content: string, image: File) {
@@ -51,12 +60,11 @@ export class PostsService {
     postData.append('title', title);
     postData.append('content', content);
     postData.append('image', image, title);
-    this.http.post<{ message: string }>(environment.api_url_prefix + 'posts', postData)
-      .subscribe(
-        (data) => {
-          this.router.navigate(['/']);
-        }
-      );
+    this.http
+      .post<{ message: string }>(this.posts_api_url_prefix, postData)
+      .subscribe((data) => {
+        this.router.navigate(['/']);
+      });
   }
 
   updatePost(id: string, title: string, content: string, image: string | File) {
@@ -71,19 +79,18 @@ export class PostsService {
         id: id,
         title: title,
         content: content,
-        imagePath: image
+        imagePath: image,
       };
     }
-    this.http.put<{ message: string }>(environment.api_url_prefix + 'posts/' + id, postData)
-      .subscribe(
-        (data) => {
-          this.router.navigate(['/']);
-        }
-      );
+    this.http
+      .put<{ message: string }>(this.posts_api_url_prefix + id, postData)
+      .subscribe((data) => {
+        this.router.navigate(['/']);
+      });
   }
 
   deletePost(id: string) {
-    return this.http.delete(environment.api_url_prefix + 'posts/' + id);
+    return this.http.delete(this.posts_api_url_prefix + id);
   }
 
   getPostsUpdateListener() {

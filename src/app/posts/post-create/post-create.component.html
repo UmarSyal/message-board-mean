@@ -9,7 +9,7 @@
         <mat-error *ngIf="postForm.get('title').invalid">Please enter a valid post title(minimum 3 characters).</mat-error>
       </mat-form-field>
 
-      <button mat-stroked-button type="button" (click)="filePicker.click()">ADD IMAGE</button>
+      <button mat-stroked-button type="button" (click)="filePicker.click()">{{ editMode ? 'CHANGE' : 'ADD' }} IMAGE</button>
       <input type="file" #filePicker (change)="onImagePicked($event)">
 
       <div class="image-preview" *ngIf="imagePreview && imagePreview !== '' && postForm.get('image').valid">

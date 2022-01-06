@@ -1,38 +1,12 @@
-const express = require('express');
-const multer = require('multer');
+const Post = require('../models/post.model');
 
-const Post = require('../models/post');
-
-const router = express.Router();
-
-const MIME_TYPE_MAP = {
-  'image/png': 'png',
-  'image/jpg': 'jpg',
-  'image/jpeg': 'jpg'
-};
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const isValid = MIME_TYPE_MAP[file.mimetype];
-    let error = new Error('Invalid mime type');
-    if (isValid) {
-      error = null
-    }
-    cb(error, 'backend/images');
-  },
-  filename: (req, file, cb) => {
-    const origName = file.originalname.toLowerCase().split(' ').join('-');
-    const ext = MIME_TYPE_MAP[file.mimetype];
-    const fileName = origName + '-' + Date.now() + '.' + ext;
-    cb(null, fileName);
-  }
-});
-
-router.post('', multer({ storage: storage }).single('image'), (req, res, next) => {
+exports.createPost = (req, res, next) => {
   const url = req.protocol + '://' + req.get('host');
   const post = new Post({
     title: req.body.title,
     content: req.body.content,
-    imagePath: url + '/images/' + req.file.filename
+    imagePath: url + '/images/' + req.file.filename,
+    creator: req.userInfo.id
   });
   post.save()
     .then((result) => {
@@ -49,9 +23,9 @@ router.post('', multer({ storage: storage }).single('image'), (req, res, next) =
         message: 'Post create failed!'
       });
     });
-});
+};
 
-router.get('', (req, res, next) => {
+exports.getPosts = (req, res, next) => {
   const pageSize = +req.query.pageSize;
   const currentPage = +req.query.currentPage;
   const query = Post.find();
@@ -78,9 +52,9 @@ router.get('', (req, res, next) => {
         message: 'Posts fetching failed!'
       });
     });
-});
+};
 
-router.get('/:id', (req, res, next) => {
+exports.getPost = (req, res, next) => {
   Post.findOne({ _id: req.params.id })
     .then((result) => {
       console.log('Post fetched successfully:');
@@ -97,22 +71,24 @@ router.get('/:id', (req, res, next) => {
         message: 'Post not found!'
       });
     });
-});
+};
 
-router.put('/:id', multer({ storage: storage }).single('image'), (req, res, next) => {
+exports.updatePost = (req, res, next) => {
   if (req.file) {
     const url = req.protocol + '://' + req.get('host');
     req.body.imagePath = url + '/images/' + req.file.filename;
   }
+  req.body.creator = req.userInfo.id;
+
   Post.updateOne(
-    { _id: req.params.id },
+    { _id: req.params.id, creator: req.userInfo.id },
     req.body
   )
     .then((result) => {
-      console.log('Post updated successfully:');
-      console.log(result);
-      res.status(201).json({
-        message: 'Post updated successfully!'
+      const message = result.acknowledged ? 'Post updated successfully!' : 'Authorization denied';
+      const statusCode = result.acknowledged ? 200 : 401;
+      res.status(statusCode).json({
+        message: message
       });
     })
     .catch((error) => {
@@ -122,15 +98,15 @@ router.put('/:id', multer({ storage: storage }).single('image'), (req, res, next
         message: 'Post update failed!'
       });
     });
-});
+};
 
-router.delete('/:id', (req, res, next) => {
-  Post.deleteOne({ _id: req.params.id })
+exports.deletePost = (req, res, next) => {
+  Post.deleteOne({ _id: req.params.id, creator: req.userInfo.id })
     .then((result) => {
-      console.log('Post deleted successfully:');
-      console.log(result);
-      res.status(200).json({
-        message: 'Post deleted successfully!',
+      const message = result.deletedCount > 0 ? 'Post deleted successfully!' : 'Authorization denied';
+      const statusCode = result.deletedCount > 0 ? 200 : 401;
+      res.status(statusCode).json({
+        message: message
       });
     })
     .catch((error) => {
@@ -140,6 +116,4 @@ router.delete('/:id', (req, res, next) => {
         message: 'Post deletion failed!'
       });
     });
-});
-
-module.exports = router;
+}

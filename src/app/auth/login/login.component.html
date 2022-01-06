@@ -2,7 +2,7 @@
 
 <mat-card *ngIf="!loading">
   <mat-card-content>
-    <form class="signup-form" (submit)="onSignup(signupForm)" #signupForm="ngForm">
+    <form class="login-form" (submit)="onLogin(loginForm)" #loginForm="ngForm">
       <mat-form-field MatFormFieldControl appearance="fill">
         <mat-label>Email</mat-label>
         <input matInput type="email" placeholder="example@something.com" name="email" #emailField="ngModel" required email ngModel>
@@ -17,7 +17,7 @@
 
       <mat-error *ngIf="error" style="margin-bottom: 1rem;">{{ error }}</mat-error>
 
-      <button mat-raised-button color="primary" type="submit">SIGN UP</button>
+      <button mat-raised-button color="primary" type="submit">SIGN IN</button>
     </form>
   </mat-card-content>
 </mat-card>
